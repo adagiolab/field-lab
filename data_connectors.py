@@ -382,15 +382,30 @@ class ASEANDataConnector:
 
 
 class ADBDataConnector:
-    """Connector for Asian Development Bank Data Library"""
+    """Connector for Asian Development Bank Data Library and KIDB API"""
     
     def __init__(self):
         self.base_url = "https://data.adb.org"
-        self.api_url = "https://data.adb.org/api"
+        self.kidb_base_url = "https://kidb.adb.org/api"
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'SEA-Environmental-Platform/1.0'
+            'User-Agent': 'SEA-Environmental-Platform/1.0',
+            'Accept': 'application/json'
         })
+        
+        # ADB country codes (some may differ from World Bank)
+        self.country_codes = {
+            'Singapore': 'SIN',
+            'Malaysia': 'MAL', 
+            'Thailand': 'THA',
+            'Indonesia': 'INO',
+            'Philippines': 'PHI',
+            'Vietnam': 'VIE',
+            'Myanmar': 'MYA',
+            'Cambodia': 'CAM',
+            'Laos': 'LAO',
+            'Brunei': 'BRU'
+        }
     
     def get_economic_indicators(self, countries: List[str]) -> Optional[pd.DataFrame]:
         """
