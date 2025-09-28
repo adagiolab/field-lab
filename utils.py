@@ -201,7 +201,7 @@ def calculate_data_quality_score(data: pd.DataFrame) -> float:
         scores.append(temporal_score)
         
         # Overall quality score
-        return np.mean(scores)
+        return float(np.mean(scores))
         
     except Exception as e:
         logger.error(f"Quality score calculation failed: {e}")

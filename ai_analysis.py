@@ -79,7 +79,11 @@ class AIAnalysisEngine:
                 response_format={"type": "json_object"}
             )
             
-            analysis_result = json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            if content:
+                analysis_result = json.loads(content)
+            else:
+                raise ValueError("Empty response from AI")
             
             # Add metadata
             analysis_result['analysis_metadata'] = {
@@ -156,7 +160,11 @@ class AIAnalysisEngine:
                 response_format={"type": "json_object"}
             )
             
-            return json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            if content:
+                return json.loads(content)
+            else:
+                raise ValueError("Empty response from AI")
             
         except Exception as e:
             return {
@@ -220,7 +228,11 @@ class AIAnalysisEngine:
                 response_format={"type": "json_object"}
             )
             
-            return json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            if content:
+                return json.loads(content)
+            else:
+                raise ValueError("Empty response from AI")
             
         except Exception as e:
             return {
@@ -277,7 +289,11 @@ class AIAnalysisEngine:
                 response_format={"type": "json_object"}
             )
             
-            return json.loads(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            if content:
+                return json.loads(content)
+            else:
+                raise ValueError("Empty response from AI")
             
         except Exception as e:
             return {
@@ -306,7 +322,7 @@ class AIAnalysisEngine:
                         {source_name.upper()}:
                         - Shape: {dataset.shape}
                         - Columns: {list(dataset.columns)}
-                        - Date range: {dataset.get('timestamp', pd.Series()).min()} to {dataset.get('timestamp', pd.Series()).max()}
+                        - Date range: {dataset.get('timestamp', pd.Series()).min() if 'timestamp' in dataset.columns else 'N/A'} to {dataset.get('timestamp', pd.Series()).max() if 'timestamp' in dataset.columns else 'N/A'}
                         - Sample data: {dataset.head(2).to_dict() if len(dataset) > 0 else 'No data'}
                         """)
                     else:

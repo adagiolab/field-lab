@@ -45,7 +45,14 @@ class CorrelationAnalyzer:
                 }
             
             # Calculate correlation matrix
-            correlation_matrix = correlation_data.corr(method=method.lower())
+            if method.lower() == 'pearson':
+                correlation_matrix = correlation_data.corr(method='pearson')
+            elif method.lower() == 'spearman':
+                correlation_matrix = correlation_data.corr(method='spearman')
+            elif method.lower() == 'kendall':
+                correlation_matrix = correlation_data.corr(method='kendall')
+            else:
+                correlation_matrix = correlation_data.corr(method='pearson')
             
             # Calculate p-values
             p_values = self._calculate_correlation_p_values(correlation_data, method)
@@ -173,7 +180,7 @@ class CorrelationAnalyzer:
                 return {'error': 'Insufficient numeric variables for correlation analysis'}
             
             # Calculate correlation matrix
-            correlation_matrix = full_data[numeric_columns].corr()
+            correlation_matrix = full_data[numeric_columns].corr(method='pearson')
             
             # Calculate regional differences
             regional_stats = {}
@@ -181,8 +188,8 @@ class CorrelationAnalyzer:
                 region_data = full_data[full_data['region'] == region]
                 if not region_data.empty:
                     regional_stats[region] = {
-                        'mean_values': region_data[numeric_columns].mean().to_dict(),
-                        'std_values': region_data[numeric_columns].std().to_dict(),
+                        'mean_values': dict(region_data[numeric_columns].mean()),
+                        'std_values': dict(region_data[numeric_columns].std()),
                         'data_points': len(region_data)
                     }
             
@@ -224,7 +231,7 @@ class CorrelationAnalyzer:
                     if isinstance(env_df, pd.DataFrame) and not env_df.empty:
                         # Simulate environmental variable values
                         for var in primary_vars:
-                            row_data[var] = np.random.normal(50, 10)  # Placeholder
+                            row_data[var] = float(np.random.normal(50, 10))  # Placeholder
                 
                 # Extract economic data
                 if 'economic' in country_data:
@@ -232,7 +239,7 @@ class CorrelationAnalyzer:
                     if isinstance(econ_df, pd.DataFrame) and not econ_df.empty:
                         # Simulate economic variable values
                         for var in secondary_vars:
-                            row_data[var] = np.random.normal(30000, 5000)  # Placeholder
+                            row_data[var] = float(np.random.normal(30000, 5000))  # Placeholder
                 
                 correlation_rows.append(row_data)
         
@@ -240,7 +247,7 @@ class CorrelationAnalyzer:
         
         # Select only numeric columns for correlation
         numeric_columns = correlation_df.select_dtypes(include=[np.number]).columns
-        return correlation_df[numeric_columns]
+        return correlation_df[list(numeric_columns)]
     
     def _calculate_correlation_p_values(self, data: pd.DataFrame, method: str) -> Dict[str, Dict[str, float]]:
         """
