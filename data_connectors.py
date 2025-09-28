@@ -11,10 +11,12 @@ class SingaporeDataConnector:
     """Connector for Singapore government APIs (data.gov.sg)"""
     
     def __init__(self):
-        self.base_url = "https://api-production.data.gov.sg/v2/public/api"
-        self.weather_collection_id = 1459
-        self.psi_url = "https://api.data.gov.sg/v1/environment/psi"
-        self.forecast_url = "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast"
+        self.base_url = "https://api.data.gov.sg/v1/environment"
+        self.psi_url = f"{self.base_url}/psi"
+        self.temperature_url = f"{self.base_url}/air-temperature"
+        self.humidity_url = f"{self.base_url}/relative-humidity"
+        self.rainfall_url = f"{self.base_url}/rainfall"
+        self.forecast_url = f"{self.base_url}/2-hour-weather-forecast"
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'SEA-Environmental-Platform/1.0'
@@ -31,48 +33,78 @@ class SingaporeDataConnector:
             DataFrame with weather data or None if failed
         """
         try:
-            # Get weather data from the realtime weather readings collection
-            url = f"{self.base_url}/collections/{self.weather_collection_id}/metadata"
+            weather_records = []
             
-            response = self.session.get(url, timeout=30)
-            response.raise_for_status()
+            # Fetch temperature data
+            temp_response = self.session.get(self.temperature_url, timeout=30)
+            if temp_response.status_code == 200:
+                temp_data = temp_response.json()
+                if 'items' in temp_data and len(temp_data['items']) > 0:
+                    for item in temp_data['items']:
+                        timestamp = item.get('timestamp')
+                        readings = item.get('readings', [])
+                        for reading in readings:
+                            station_id = reading.get('station_id')
+                            value = reading.get('value')
+                            weather_records.append({
+                                'timestamp': timestamp,
+                                'station_id': station_id,
+                                'parameter': 'temperature',
+                                'value': value
+                            })
             
-            metadata = response.json()
+            # Fetch humidity data
+            humidity_response = self.session.get(self.humidity_url, timeout=30)
+            if humidity_response.status_code == 200:
+                humidity_data = humidity_response.json()
+                if 'items' in humidity_data and len(humidity_data['items']) > 0:
+                    for item in humidity_data['items']:
+                        timestamp = item.get('timestamp')
+                        readings = item.get('readings', [])
+                        for reading in readings:
+                            station_id = reading.get('station_id')
+                            value = reading.get('value')
+                            weather_records.append({
+                                'timestamp': timestamp,
+                                'station_id': station_id,
+                                'parameter': 'humidity',
+                                'value': value
+                            })
             
-            # Get the actual data endpoint
-            if 'data' in metadata and len(metadata['data']) > 0:
-                data_url = f"{self.base_url}/collections/{self.weather_collection_id}/datasets"
+            # Fetch rainfall data
+            rainfall_response = self.session.get(self.rainfall_url, timeout=30)
+            if rainfall_response.status_code == 200:
+                rainfall_data = rainfall_response.json()
+                if 'items' in rainfall_data and len(rainfall_data['items']) > 0:
+                    for item in rainfall_data['items']:
+                        timestamp = item.get('timestamp')
+                        readings = item.get('readings', [])
+                        for reading in readings:
+                            station_id = reading.get('station_id')
+                            value = reading.get('value')
+                            weather_records.append({
+                                'timestamp': timestamp,
+                                'station_id': station_id,
+                                'parameter': 'rainfall',
+                                'value': value
+                            })
+            
+            if weather_records:
+                weather_df = pd.DataFrame(weather_records)
+                weather_df['timestamp'] = pd.to_datetime(weather_df['timestamp'])
                 
-                data_response = self.session.get(data_url, timeout=30)
-                data_response.raise_for_status()
+                # Pivot to get temperature, humidity, rainfall as columns
+                weather_pivot = weather_df.pivot_table(
+                    index=['timestamp', 'station_id'], 
+                    columns='parameter', 
+                    values='value', 
+                    aggfunc='mean'
+                ).reset_index()
                 
-                datasets = data_response.json()
+                # Flatten column names
+                weather_pivot.columns.name = None
                 
-                if 'data' in datasets and len(datasets['data']) > 0:
-                    # Get the latest dataset
-                    latest_dataset = datasets['data'][0]
-                    dataset_id = latest_dataset['id']
-                    
-                    # Fetch actual weather readings
-                    readings_url = f"{self.base_url}/datasets/{dataset_id}/poll-download"
-                    
-                    readings_response = self.session.get(readings_url, timeout=30)
-                    readings_response.raise_for_status()
-                    
-                    # Parse CSV data
-                    from io import StringIO
-                    weather_df = pd.read_csv(StringIO(readings_response.text))
-                    
-                    # Clean and standardize data
-                    if not weather_df.empty:
-                        # Convert timestamp if present
-                        if 'timestamp' in weather_df.columns:
-                            weather_df['timestamp'] = pd.to_datetime(weather_df['timestamp'])
-                        
-                        # Standardize column names
-                        weather_df.columns = weather_df.columns.str.lower().str.replace(' ', '_')
-                        
-                        return weather_df
+                return weather_pivot
             
             return None
             
@@ -150,8 +182,7 @@ class SingaporeDataConnector:
     def check_weather_api_status(self) -> bool:
         """Check if weather API is accessible"""
         try:
-            url = f"{self.base_url}/collections/{self.weather_collection_id}/metadata"
-            response = self.session.get(url, timeout=10)
+            response = self.session.get(self.temperature_url, timeout=10)
             return response.status_code == 200
         except:
             return False
