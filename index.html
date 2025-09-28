@@ -1,0 +1,58 @@
+<!-- index.html at repo root or in docs/ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Field Lab — Environmental Data Analysis</title>
+  <meta name="description" content="AI-powered environmental data analysis and visualization." />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 2rem; line-height: 1.5; }
+    header { margin-bottom: 2rem; }
+    h1 { margin: 0 0 0.5rem 0; font-size: 2rem; }
+    .cta { display: inline-block; margin-top: 1rem; padding: 0.6rem 1rem; background: #0f62fe; color: #fff; text-decoration: none; border-radius: 6px; }
+    .cta:hover { background: #0353e9; }
+    code, pre { background: rgba(127,127,127,0.15); padding: 0.2rem 0.4rem; border-radius: 4px; }
+    footer { margin-top: 3rem; font-size: 0.9rem; color: #666; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Field Lab</h1>
+    <p>AI-powered environmental data analysis and visualization.</p>
+    <!-- If you deploy the Streamlit app elsewhere, put the URL below -->
+    <a class="cta" href="#" aria-disabled="true">App coming soon</a>
+  </header>
+
+  <main>
+    <h2>Features</h2>
+    <ul>
+      <li>Load environmental datasets (e.g., ADB indicators)</li>
+      <li>Run correlation and AI-assisted analyses</li>
+      <li>Export and visualize results</li>
+    </ul>
+
+    <h2>Run locally</h2>
+    <ol>
+      <li>Create a virtual environment and install dependencies:</li>
+    </ol>
+    <pre><code>uv sync
+# or
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+</code></pre>
+    <ol start="2">
+      <li>Start the Streamlit app:</li>
+    </ol>
+    <pre><code>streamlit run app.py</code></pre>
+
+    <p>GitHub Pages serves static files only. For the interactive app, deploy to Streamlit Cloud, Hugging Face Spaces, Render, etc., and link it above.</p>
+  </main>
+
+  <footer>
+    <p>Source: <a href="https://github.com/adagiolab/field-lab">adagiolab/field-lab</a></p>
+  </footer>
+</body>
+</html>
